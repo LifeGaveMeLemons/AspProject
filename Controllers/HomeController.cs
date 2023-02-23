@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel;
 using System.Diagnostics;
 using TippingProject.Models;
 using System.Data.SqlClient;
-using System.Text.RegularExpressions;
-using System.Reflection.PortableExecutable;
-using System.Web;
 using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 using System.Net;
@@ -27,13 +23,9 @@ namespace TippingProject.Controllers
             return View();
         }
        
-
         [HttpPost]
         public IActionResult HandleInput(LoginCredentials details)
         {
-
-
-
             string? password = null;
             if (Regex.IsMatch(details.name,$"[a-zA-Z0-9]"))
             {
@@ -73,11 +65,9 @@ namespace TippingProject.Controllers
                 return Content("character invalid");
             }
 
-
             if (password == details.password)
             {
-
-
+                DateTime expDate = DateTime.Now.AddHours(1);
                 IPAddress? ipAddress = HttpContext.Connection.RemoteIpAddress;
                 if (ipAddress == null)
                 {
@@ -89,18 +79,15 @@ namespace TippingProject.Controllers
                 int randNum = RandomNumberGenerator.GetInt32(int.MaxValue);
                 data.Add("AuthID", randNum.ToString());
 
-
                 string userName = details.name;
                 data.Add("Username",userName);
 
-                string expiryDate = DateTime.Now.AddHours(1).ToString();
+                string expiryDate = expDate.ToString();
                 data.Add("ExpTime", expiryDate);
 
-                CookieOptions cookieOptions = CreateCookieOptions();
-                Response.Cookies.Append("AuthCookie",JsonConvert.SerializeObject(data), cookieOptions);
 
-                
-                
+
+                Response.Cookies.Append("AuthCookie",JsonConvert.SerializeObject(data), CreateCookieOptions(expDate));  
             }
             return Redirect(nameof(LoggedOnPage));
         }
@@ -108,12 +95,12 @@ namespace TippingProject.Controllers
         {
             return View();
         }
-        private CookieOptions CreateCookieOptions()
+        private CookieOptions CreateCookieOptions(DateTime DateTimeToSet)
         {
             CookieOptions cookie = new CookieOptions();
             cookie.HttpOnly = false;
             cookie.Secure = false;
-            cookie.Expires = DateTime.Now.AddHours(1);
+            cookie.Expires = DateTimeToSet;
             cookie.IsEssential = true;
             return cookie;
         }
