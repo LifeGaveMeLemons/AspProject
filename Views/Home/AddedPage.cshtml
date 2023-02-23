@@ -1,0 +1,34 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+    <body>
+            <input type="text" id="username" placeholder="name">
+            <input type="password" id="password" placeholder="password">
+            <button onclick="MakeAjaxRequest()"> click to submit</button>
+    <script src="/lib/jquery/dist/jquery.js"></script>
+        <script>
+            function MakeAjaxRequest()
+            {
+                var Credentials = { password: "password", name:"user1"};
+                $.ajax({
+                    type:"POST",
+                    url:"/Home/HandleInput",
+                    data:{details: Credentials},   
+                    success:function (response)
+                    {
+                        console.log(document.cookie)
+
+                    }
+                    
+
+                })
+                
+            }
+        </script>
+    </body>
+</html>
+

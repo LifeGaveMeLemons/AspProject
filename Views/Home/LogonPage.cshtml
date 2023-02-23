@@ -1,0 +1,32 @@
+﻿
+<!DOCTYPE html>
+<html>
+    <body>
+        <input type="text" placeholder="username"/>
+        <input type="password" placeholder="password" id="username"/>
+        <p id="errorMessage"></p>
+        <button> submit</button>
+        <script src="/lib/jquery/dist/jquery.js"></script>
+        <script>
+            function SubmitLogonDetails(passwordEntered,nameEntered)
+            {
+                var inputs={password = passwordEntered, name= nameEntered};
+                $.ajax
+                ({
+                    type:"POST",
+                    url: "Home/HandleLogOn",
+                    data: {loginDetails : inputs}
+                    success: function(message)
+                    {
+                        document.getElementById("errorMessage").innerText.replace("incorrect password")
+                        
+                    }
+                    
+                    
+                }
+                )
+            }
+
+        </script>
+    </body>
+</html>
