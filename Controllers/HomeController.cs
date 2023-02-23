@@ -20,6 +20,7 @@ namespace TippingProject.Controllers
         }
         public IActionResult AddedPage()
         {
+            Console.WriteLine("hello");
             return View();
         }
        
