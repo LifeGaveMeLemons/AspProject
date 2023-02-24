@@ -20,7 +20,6 @@ namespace TippingProject.Controllers
         }
         public IActionResult AddedPage()
         {
-            Console.WriteLine("hello");
             return View();
         }
        
@@ -85,7 +84,13 @@ namespace TippingProject.Controllers
 
                 string expiryDate = expDate.ToString();
                 data.Add("ExpTime", expiryDate);
-
+                using (SqlConnection conn = new SqlConnection("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"C:\\Users\\borod\\OneDrive\\Documents\\Asp.Net Database\\Uset_Authentication_Database.mdf\";Integrated Security=True;Connect Timeout=30"))
+                {
+                    using (SqlCommand command = new SqlCommand("INSERT "conn))
+                    {
+                        command.CommandText = "";
+                    }
+                }
 
 
                 Response.Cookies.Append("AuthCookie",JsonConvert.SerializeObject(data), CreateCookieOptions(expDate));  
