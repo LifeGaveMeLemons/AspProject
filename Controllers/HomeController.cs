@@ -86,13 +86,39 @@ namespace TippingProject.Controllers
                 data.Add("ExpTime", expiryDate);
                 using (SqlConnection conn = new SqlConnection("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"C:\\Users\\borod\\OneDrive\\Documents\\Asp.Net Database\\Uset_Authentication_Database.mdf\";Integrated Security=True;Connect Timeout=30"))
                 {
-                    using (SqlCommand command = new SqlCommand("INSERT "conn))
+                    using (SqlCommand command = new SqlCommand("SELECT * FROM User_Auth_Data WHERE Username == @username", conn))
                     {
-                        command.CommandText = "";
+                        command.Parameters.AddWithValue();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                if (reader == null)
+                                {
+                                    return Content("user already authenticated");
+                                }
+                            }
+                            
+                        }
+                        command.CommandText = $"SELECT expDate FROM User_Auth_Data WHERE username == {data["AuthID"]}";
+                        using (SqlDataReader reader = command.ExecuteReader()) ;
+                        while (true)
+                        {
+
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+
+                            }
+                        }
+                        command.CommandText = "INSERT INTO User_Auth_Data(AuthID, IpAddress, Username, ExpDate) VALUES(@auth,@ip,@username,@expTime)";
+                        command.Parameters.AddWithValue("@ip", data["IpAddress"]);
+                        command.Parameters.AddWithValue("@auth", data["AuthID"]);
+                        command.Parameters.AddWithValue("@username", data["userName"]);
+                        command.Parameters.AddWithValue("@expTime", data["ExpTime"]);
+                        command.ExecuteReader();
+
                     }
                 }
-
-
                 Response.Cookies.Append("AuthCookie",JsonConvert.SerializeObject(data), CreateCookieOptions(expDate));  
             }
             return Redirect(nameof(LoggedOnPage));
