@@ -88,18 +88,21 @@ namespace TippingProject.Controllers
                 {
                     using (SqlCommand command = new SqlCommand("SELECT * FROM User_Auth_Data WHERE Username == @username", conn))
                     {
-                        command.Parameters.AddWithValue();
+                        //check if user already authenticated
+                        command.Parameters.AddWithValue("@username", details.name);
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
                             if (reader.Read())
                             {
-                                if (reader == null)
+                                if (reader != null)
                                 {
                                     return Content("user already authenticated");
                                 }
                             }
                             
                         }
+
+                        //check if a duplicate jkey exists without the expired time, if date is expired, then it is overwritten
                         command.CommandText = $"SELECT expDate FROM User_Auth_Data WHERE username == {data["AuthID"]}";
                         using (SqlDataReader reader = command.ExecuteReader()) ;
                         while (true)
@@ -107,7 +110,10 @@ namespace TippingProject.Controllers
 
                             using (SqlDataReader reader = command.ExecuteReader())
                             {
+                                if (reader.Read())
+                                {
 
+                                }
                             }
                         }
                         command.CommandText = "INSERT INTO User_Auth_Data(AuthID, IpAddress, Username, ExpDate) VALUES(@auth,@ip,@username,@expTime)";
