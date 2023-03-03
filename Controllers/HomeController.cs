@@ -94,21 +94,11 @@ namespace TippingProject.Controllers
                     using (SqlCommand command = new SqlCommand("SELECT * FROM User_Auth_Data WHERE Username = @username", conn))
                     {
                         conn.Open();
-                        //check if user already authenticated
-                        command.Parameters.AddWithValue("@username", details.name);
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                if (reader != null)
+                                if (Request.Cookies["AuthID"] != null)
                                 {
-                                    conn.Close();
-                                    reader.Close();
                                     return Content("user already authenticated");
                                 }
-                            }
 
-                        }
 
                         //check if a duplicate key exists without the expired time, if date is expired, then it is overwritten
 
@@ -160,7 +150,7 @@ namespace TippingProject.Controllers
                     }
                 }
             }
-            return Redirect(nameof(LoggedOnPage));
+            return Content($"/Home/{nameof(LoggedOnPage)}");
         }
         public IActionResult LoggedOnPage()
         {
@@ -188,14 +178,14 @@ namespace TippingProject.Controllers
                                 {
                                 return Content("no data");
                                 }
-                                if (deserializedData["AuthID"] == reader[3].ToString())
+                                if (deserializedData["AuthID"] == reader[0].ToString())
                                 {
-                                    if (deserializedData["userName"] == reader[2].ToString())
+                                    if (deserializedData["Username"] == reader[2].ToString())
                                     {
                                         if (deserializedData["IpAddress"] == reader[1].ToString() && HttpContext.Connection.RemoteIpAddress.ToString() == reader[1].ToString())
                                         {
-                                        conn.Close();
-                                        return View();
+                                            conn.Close();
+                                            return View();
                                         }
                                     }
                                 }

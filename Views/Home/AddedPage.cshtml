@@ -20,7 +20,11 @@
                     data:{details: Credentials},   
                     success:function (response)
                     {
-                        console.log(document.cookie)
+                        if (response == "/Home/LoggedOnPage")
+                        {
+                            window.location = response
+                        }
+                        else console.log(response)
 
                     }
                     
