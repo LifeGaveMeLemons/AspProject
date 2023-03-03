@@ -50,7 +50,7 @@ namespace TippingProject.Controllers
                                     string? tempVal = reader["password"].ToString();
                                     if (tempVal == null)
                                     {
-                                        reader.Close()
+                                        reader.Close();
                                         return Content("username or password invalid");
                                     }
                                     else
