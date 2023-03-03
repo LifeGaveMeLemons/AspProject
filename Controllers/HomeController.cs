@@ -11,9 +11,10 @@ namespace TippingProject.Controllers
 {
     public class HomeController : Controller
     {
-        const string connectionString = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"C:\\Users\\borod\\OneDrive\\Documents\\Asp.Net Database\\Uset_Authentication_Database.mdf\";Integrated Security=True;Connect Timeout=30";
-        const string authenticatedUserColumnInsertionQuery = "INSERT INTO User_Auth_Data(AuthID, IpAddress, Username, ExpDate) VALUES(@auth,@ip,@username,@expTime)";
-        const string authenticationValidationSubString = "SELECT * FROM User_Auth_Data WHERE AuthId == @ID";
+        const string ConnectionString = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"C:\\USERS\\BOROD\\ONEDRIVE\\DOCUMENTS\\DATABASES\\USER_DETAILS.MDF\"; Integrated Security=True;Connect Timeout=30";
+        const string AuthDbConnectionString = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"C:\\Users\\borod\\OneDrive\\Documents\\Asp.Net Database\\User_Authentication_Database.mdf\";Integrated Security=True;Connect Timeout=30";
+        const string AuthenticatedUserColumnInsertionQuery = "INSERT INTO User_Auth_Data(AuthID, IpAddress, Username, ExpDate) VALUES(@auth,@ip,@username,@expTime)";
+        const string AuthenticationValidationSubString = "SELECT * FROM User_Auth_Data WHERE AuthId = @ID";
 
         private readonly ILogger<HomeController> _logger;
 
@@ -38,7 +39,7 @@ namespace TippingProject.Controllers
                 }
                 else
                 {
-                    using (SqlConnection conn = new SqlConnection(connectionString))
+                    using (SqlConnection conn = new SqlConnection(ConnectionString))
                     {
                         conn.Open();
                         using (SqlCommand command = new SqlCommand("SELECT password FROM User_Details WHERE username = @Username", conn))
@@ -88,10 +89,11 @@ namespace TippingProject.Controllers
 
                 string expiryDate = expDate.ToString();
                 data.Add("ExpTime", expiryDate);
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                using (SqlConnection conn = new SqlConnection(AuthDbConnectionString))
                 {
-                    using (SqlCommand command = new SqlCommand("SELECT * FROM User_Auth_Data WHERE Username == @username", conn))
+                    using (SqlCommand command = new SqlCommand("SELECT * FROM User_Auth_Data WHERE Username = @username", conn))
                     {
+                        conn.Open();
                         //check if user already authenticated
                         command.Parameters.AddWithValue("@username", details.name);
                         using (SqlDataReader reader = command.ExecuteReader())
@@ -100,18 +102,19 @@ namespace TippingProject.Controllers
                             {
                                 if (reader != null)
                                 {
+                                    conn.Close();
                                     reader.Close();
                                     return Content("user already authenticated");
                                 }
                             }
-                            
+
                         }
 
                         //check if a duplicate key exists without the expired time, if date is expired, then it is overwritten
 
                         while (true)
                         {
-                            command.CommandText = $"SELECT expDate FROM User_Auth_Data WHERE username == {randNum}";
+                            command.CommandText = $"SELECT expDate FROM User_Auth_Data WHERE AuthID = {randNum}";
                             using (SqlDataReader reader = command.ExecuteReader())
                             {
                                 if (reader.Read())
@@ -125,32 +128,42 @@ namespace TippingProject.Controllers
                                     DateTime.TryParse(reader["ExpDate"].ToString(), out authExpiryDate);
                                     if (authExpiryDate < DateTime.Now)
                                     {
+
                                         reader.Close();
                                         break;
                                     }
+
                                     reader.Close();
                                     randNum = RandomNumberGenerator.GetInt32(int.MaxValue);
 
                                 }
+                                else
+                                {
+
+                                    reader.Close();
+                                    break;
+                                }
                             }
                         }
+                    }
+                    using (SqlCommand command = new SqlCommand("INSERT INTO User_Auth_Data(AuthID, IpAddress, Username, ExpDate) VALUES(@auth,@ip,@username,@expTime)",conn))
+                    {
                         data["AuthID"] = randNum.ToString();
-                        command.CommandText = authenticatedUserColumnInsertionQuery;
+                        command.CommandText = AuthenticatedUserColumnInsertionQuery;
                         command.Parameters.AddWithValue("@ip", data["IpAddress"]);
                         command.Parameters.AddWithValue("@auth", data["AuthID"]);
-                        command.Parameters.AddWithValue("@username", data["userName"]);
+                        command.Parameters.AddWithValue("@username", data["Username"]);
                         command.Parameters.AddWithValue("@expTime", data["ExpTime"]);
                         command.ExecuteNonQuery();
+                        conn.Close();
                         Response.Cookies.Append("AuthCookie", JsonConvert.SerializeObject(data), CreateCookieOptions(expDate));
                     }
                 }
-
             }
             return Redirect(nameof(LoggedOnPage));
         }
         public IActionResult LoggedOnPage()
         {
-
             string? cookie = Request.Cookies["AuthCookie"];
             if (cookie == null)
             {
@@ -159,12 +172,12 @@ namespace TippingProject.Controllers
             int firstIndex = cookie.IndexOf('{');
             int lastIndex = cookie.LastIndexOf('}');
             string data = cookie.Substring(firstIndex,lastIndex - firstIndex+1);
-
             Dictionary<string, string> deserializedData= JsonConvert.DeserializeObject<Dictionary<string, string>>(data);
             data.ElementAt(1);
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                using (SqlConnection conn = new SqlConnection(AuthDbConnectionString))
                 {
-                    using (SqlCommand command = new SqlCommand(authenticationValidationSubString,conn))
+                conn.Open();
+                using (SqlCommand command = new SqlCommand(AuthenticationValidationSubString,conn))
                     {
                         command.Parameters.AddWithValue("@ID", deserializedData["AuthID"]);
                         using (SqlDataReader reader = command.ExecuteReader())
@@ -181,6 +194,7 @@ namespace TippingProject.Controllers
                                     {
                                         if (deserializedData["IpAddress"] == reader[1].ToString() && HttpContext.Connection.RemoteIpAddress.ToString() == reader[1].ToString())
                                         {
+                                        conn.Close();
                                         return View();
                                         }
                                     }
@@ -188,11 +202,9 @@ namespace TippingProject.Controllers
                             }
                         }
                     }
-
+                conn.Close();
                 }
-            return Content("");
-
-
+            return Redirect(nameof(AddedPage));
         }
         private CookieOptions CreateCookieOptions(DateTime DateTimeToSet)
         {
