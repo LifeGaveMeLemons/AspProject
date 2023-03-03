@@ -12,7 +12,8 @@ namespace TippingProject.Controllers
     public class HomeController : Controller
     {
         const string connectionString = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"C:\\Users\\borod\\OneDrive\\Documents\\Asp.Net Database\\Uset_Authentication_Database.mdf\";Integrated Security=True;Connect Timeout=30";
-
+        const string authenticatedUserColumnInsertionQuery = "INSERT INTO User_Auth_Data(AuthID, IpAddress, Username, ExpDate) VALUES(@auth,@ip,@username,@expTime)";
+        const string authenticationValidationSubString = "SELECT * FROM User_Auth_Data WHERE AuthId == @ID";
 
         private readonly ILogger<HomeController> _logger;
 
@@ -49,12 +50,14 @@ namespace TippingProject.Controllers
                                     string? tempVal = reader["password"].ToString();
                                     if (tempVal == null)
                                     {
+                                        reader.Close()
                                         return Content("username or password invalid");
                                     }
                                     else
                                     {
                                         password = tempVal;
                                     }
+                                    reader.Close();
                                 }
                             }
                         }
@@ -97,6 +100,7 @@ namespace TippingProject.Controllers
                             {
                                 if (reader != null)
                                 {
+                                    reader.Close();
                                     return Content("user already authenticated");
                                 }
                             }
@@ -114,21 +118,24 @@ namespace TippingProject.Controllers
                                 {
                                     if (reader == null)
                                     {
+                                        reader.Close();
                                         break;
                                     }
                                     DateTime authExpiryDate;
                                     DateTime.TryParse(reader["ExpDate"].ToString(), out authExpiryDate);
                                     if (authExpiryDate < DateTime.Now)
                                     {
+                                        reader.Close();
                                         break;
                                     }
+                                    reader.Close();
                                     randNum = RandomNumberGenerator.GetInt32(int.MaxValue);
 
                                 }
                             }
                         }
                         data["AuthID"] = randNum.ToString();
-                        command.CommandText = "INSERT INTO User_Auth_Data(AuthID, IpAddress, Username, ExpDate) VALUES(@auth,@ip,@username,@expTime)";
+                        command.CommandText = authenticatedUserColumnInsertionQuery;
                         command.Parameters.AddWithValue("@ip", data["IpAddress"]);
                         command.Parameters.AddWithValue("@auth", data["AuthID"]);
                         command.Parameters.AddWithValue("@username", data["userName"]);
@@ -157,12 +164,33 @@ namespace TippingProject.Controllers
             data.ElementAt(1);
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
-                    using (SqlCommand command = new SqlCommand("SELECT * FROM User_Auth_Data WHERE AuthId == @ID",conn))
+                    using (SqlCommand command = new SqlCommand(authenticationValidationSubString,conn))
                     {
-                    command.Parameters.AddWithValue("@ID", deserializedData["AuthID"]);
+                        command.Parameters.AddWithValue("@ID", deserializedData["AuthID"]);
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                if (reader == null)
+                                {
+                                return Content("no data");
+                                }
+                                if (deserializedData["AuthID"] == reader[3].ToString())
+                                {
+                                    if (deserializedData["userName"] == reader[2].ToString())
+                                    {
+                                        if (deserializedData["IpAddress"] == reader[1].ToString() && HttpContext.Connection.RemoteIpAddress.ToString() == reader[1].ToString())
+                                        {
+                                        return View();
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
 
                 }
+            return Content("");
 
 
         }
