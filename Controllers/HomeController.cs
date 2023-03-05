@@ -11,7 +11,7 @@ namespace TippingProject.Controllers
 {
     public class HomeController : Controller
     {
-        const string ConnectionString = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"C:\\USERS\\BOROD\\ONEDRIVE\\DOCUMENTS\\DATABASES\\USER_DETAILS.MDF\"; Integrated Security=True;Connect Timeout=30";
+        private const string ConnectionString = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"C:\\USERS\\BOROD\\ONEDRIVE\\DOCUMENTS\\DATABASES\\USER_DETAILS.MDF\"; Integrated Security=True;Connect Timeout=30";
         const string AuthDbConnectionString = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"C:\\Users\\borod\\OneDrive\\Documents\\Asp.Net Database\\User_Authentication_Database.mdf\";Integrated Security=True;Connect Timeout=30";
         const string AuthenticatedUserColumnInsertionQuery = "INSERT INTO User_Auth_Data(AuthID, IpAddress, Username, ExpDate) VALUES(@auth,@ip,@username,@expTime)";
         const string AuthenticationValidationSubString = "SELECT * FROM User_Auth_Data WHERE AuthId = @ID";
@@ -166,8 +166,8 @@ namespace TippingProject.Controllers
             data.ElementAt(1);
                 using (SqlConnection conn = new SqlConnection(AuthDbConnectionString))
                 {
-                conn.Open();
-                using (SqlCommand command = new SqlCommand(AuthenticationValidationSubString,conn))
+                    conn.Open();
+                    using (SqlCommand command = new SqlCommand(AuthenticationValidationSubString,conn))
                     {
                         command.Parameters.AddWithValue("@ID", deserializedData["AuthID"]);
                         using (SqlDataReader reader = command.ExecuteReader())
@@ -218,6 +218,22 @@ namespace TippingProject.Controllers
             }
         }
         
+        public IActionResult HandleAccountCreation(AccountCreationCredentials credentials)
+        {
+            if (credentials.password != credentials.PasswordConfirmation)
+            {
+                return Content("Passwords dont match");
+            }
+
+            using (SqlConnection conn = new SqlConnection(ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand command = new SqlCommand("SELECT COUNT(*) FROM User_Details WHEREm"))
+                {
+                    
+                }
+            }
+        }
         public IActionResult Index()
         {
             return View();

@@ -11,4 +11,13 @@ namespace TippingProject.Models
 
         public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
     }
+
+    public class AccountCreationCredentials
+    {
+        public string username { get; set; }
+
+        public string password { get; set; }
+
+        public string PasswordConfirmation { get; set; }
+    }
 }
