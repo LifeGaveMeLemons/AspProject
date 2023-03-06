@@ -18,6 +18,6 @@ namespace TippingProject.Models
 
         public string password { get; set; }
 
-        public string PasswordConfirmation { get; set; }
+        public string passwordConfirmation { get; set; }
     }
 }

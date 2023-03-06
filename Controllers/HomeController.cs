@@ -217,20 +217,46 @@ namespace TippingProject.Controllers
                 return Redirect("LoggedOnPage");
             }
         }
-        
+        public IActionResult AccountCreationPage()
+        {
+            return View();
+        }
+
+        [HttpPost]
         public IActionResult HandleAccountCreation(AccountCreationCredentials credentials)
         {
-            if (credentials.password != credentials.PasswordConfirmation)
+            if (credentials.password != credentials.passwordConfirmation)
             {
                 return Content("Passwords dont match");
             }
 
+
             using (SqlConnection conn = new SqlConnection(ConnectionString))
             {
                 conn.Open();
-                using (SqlCommand command = new SqlCommand("SELECT COUNT(*) FROM User_Details WHEREm"))
+                using (SqlCommand command = new SqlCommand("SELECT COUNT(*) FROM User_Details WHERE username = @Username",conn))
                 {
-                    
+                    command.Parameters.AddWithValue("@Username", credentials.username);
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            if ((int) reader[0] == 0)
+                            {
+                            }
+                            else
+                            {
+                                return Content("account exists");
+                            }
+                        }
+                    }
+                }
+                using (SqlCommand command = new SqlCommand("INSERT INTO User_Details (username,password) VALUES(@username,@password)",conn))
+                {
+                    command.Parameters.AddWithValue("@username", credentials.username);
+                    command.Parameters.AddWithValue("@password", credentials.password);
+                    command.ExecuteNonQuery();
+                    return Content("Created");
                 }
             }
         }

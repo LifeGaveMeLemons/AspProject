@@ -8,12 +8,13 @@
     <body>
             <input type="text" id="username" placeholder="name">
             <input type="password" id="password" placeholder="password">
-            <button onclick="MakeAjaxRequest()"> click to submit</button>
+            <button onclick="MakeAjaxRequest(document.getElementById('username').value,document.getElementById('password').value)"> click to submit</button>
     <script src="/lib/jquery/dist/jquery.js"></script>
         <script>
-            function MakeAjaxRequest()
+            function MakeAjaxRequest(username,password)
             {
-                var Credentials = { password: "password", name:"user1"};
+                console.log("i was here")
+                var Credentials = { password: password , name: username};
                 $.ajax({
                     type:"POST",
                     url:"/Home/HandleInput",
@@ -27,8 +28,6 @@
                         else console.log(response)
 
                     }
-                    
-
                 })
                 
             }

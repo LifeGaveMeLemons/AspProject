@@ -1,0 +1,48 @@
+﻿@{
+}
+<html>
+    <head>
+        <title>
+            Create an account
+        </title>
+    </head>
+    <body>
+        
+        <div>
+            <input id="username" type="text" placeholder="username"/>
+        </div>
+        <div>
+        <input id="password" type="password" placeholder="password"/>
+        </div>
+        <div>
+            <input id="confirmationPassword" type="password" placeholder="confirm password"/>
+         </div>
+    <button onclick="MakeAjaxRequest(document.getElementById('username').value,document.getElementById('password').value,document.getElementById('confirmationPassword').value)">submit</button>
+         <p id="guideTxt"></p>
+        <script src="~/lib/jquery/dist/jquery.js"></script>
+        <script>
+            function MakeAjaxRequest(username,password,confirmationPassword)
+            {
+                console.log(username)
+                var Credentials = { password: password, username: username,  passwordConfirmation: confirmationPassword};
+                $.ajax({
+                    type:"POST",
+                    url:"/Home/HandleAccountCreation",
+                    data:{Credentials: Credentials},   
+                    success:function (response)
+                    {
+                        if(response == "success")
+                        {
+                            window.location("/Home/AddedPage")
+                        }
+                        else{
+                            document.getElementById("guideTxt").innerText = response;
+                        }
+                    }
+                })
+                
+            }
+
+        </script>
+    </body>
+</html>
